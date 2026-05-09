@@ -1,8 +1,4 @@
-const MODEL_MAP = {
-  free:     'gemini-1.5-flash',
-  standard: 'gemini-2.0-flash',
-  vip:      'gemini-2.0-flash'
-};
+const MODEL = 'gemini-2.0-flash';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,17 +8,14 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { messages, plan = 'free', systemPrompt } = req.body;
-
+    const { messages, systemPrompt } = req.body;
     if (!messages) return res.status(400).json({ error: 'messages required' });
 
-    const model = MODEL_MAP[plan] || MODEL_MAP.free;
     const apiKey = process.env.GEMINI_API_KEY;
-
     if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
