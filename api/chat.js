@@ -14,19 +14,25 @@ module.exports = async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
+    const contents = [];
+    if (systemPrompt) {
+      contents.push({ role: 'user', parts: [{ text: `[設定]${systemPrompt}\n\nわかりました、その役を演じます。` }] });
+      contents.push({ role: 'model', parts: [{ text: 'はい、わかりました。' }] });
+    }
+    messages.forEach(m => {
+      contents.push({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      });
+    });
+
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemPrompt || 'あなたは親切なアシスタントです。' }]
-          },
-          contents: messages.map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }]
-          })),
+          contents,
           generationConfig: {
             maxOutputTokens: 300,
             temperature: 0.85
