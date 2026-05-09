@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AI仮想夜街</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #C9A840;
+  --gold-light: #e8d090;
+  --dark: #0a0a14;
+  --dark2: #12121f;
+  --dark3: #1a1830;
+  --dark4: #221e3a;
+  --purple: #3a2a60;
+  --text: #e0d8f0;
+  --text-sub: #9090b8;
+  --border: #2a2848;
+}
+body {
+  background: var(--dark);
+  color: var(--text);
+  font-family: 'Hiragino Kaku Gothic Pro','Yu Gothic',sans-serif;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+.phone {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100vh;
+  background: var(--dark2);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ========== PLAN SCREEN ========== */
+#screen-plan { display: flex; flex-direction: column; flex: 1; }
+.plan-header {
+  background: var(--dark); border-bottom: 0.5px solid var(--border);
+  padding: 16px; text-align: center; flex-shrink: 0;
+}
+.plan-logo { font-size: 11px; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 4px; }
+.plan-title { font-size: 20px; font-weight: 500; }
+.plan-sub { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+.plan-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.plan-card { border: 0.5px solid var(--border); border-radius: 16px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.plan-card.recommended { border-color: var(--gold); }
+.plan-body { padding: 16px; }
+.plan-name { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.plan-price { font-size: 13px; color: var(--gold); margin-bottom: 10px; }
+.plan-price span { font-size: 22px; font-weight: 500; }
+.plan-features { list-style: none; padding: 0; margin-bottom: 14px; }
+.plan-features li { font-size: 13px; color: var(--text-sub); padding: 5px 0; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.plan-features li:last-child { border-bottom: none; }
+.plan-features li .check { color: var(--gold); font-size: 14px; }
+.plan-btn { width: 100%; padding: 11px; border-radius: 10px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: 0.05em; }
+
+/* ========== STREET SCREEN ========== */
+#screen-street { display: none; flex-direction: column; flex: 1; }
+.street-header { background: var(--dark); border-bottom: 0.5px solid var(--border); padding: 16px; text-align: center; flex-shrink: 0; }
+.street-logo { font-size: 11px; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 4px; }
+.street-title { font-size: 20px; font-weight: 500; letter-spacing: 0.05em; }
+.street-sub { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+.mood-section { padding: 16px; flex-shrink: 0; }
+.mood-label { font-size: 11px; color: var(--text-sub); letter-spacing: 0.08em; margin-bottom: 10px; }
+.mood-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.mood-chip { font-size: 12px; padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--border); color: var(--text-sub); cursor: pointer; transition: all 0.2s; background: transparent; }
+.mood-chip.active { border-color: var(--gold); color: var(--gold-light); background: #2a2040; }
+.stores-section { flex: 1; padding: 0 16px 24px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.store-card { border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; cursor: pointer; transition: all 0.2s; position: relative; }
+.store-card.recommended { border-color: var(--gold); }
+.store-visual { height: 110px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.store-visual-emoji { font-size: 48px; z-index: 1; }
+.store-visual-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7)); }
+.store-body { padding: 12px 14px 14px; }
+.store-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.store-name { font-size: 16px; font-weight: 500; }
+.store-name-en { font-size: 10px; color: var(--gold); letter-spacing: 0.08em; margin-top: 1px; }
+.store-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.store-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 0.5px solid; }
+.store-desc { font-size: 13px; color: var(--text-sub); line-height: 1.6; margin-bottom: 10px; }
+.store-mama { display: flex; align-items: center; gap: 8px; background: var(--dark3); border-radius: 10px; padding: 8px 10px; }
+.mama-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.mama-name { font-size: 13px; font-weight: 500; }
+.mama-role { font-size: 10px; color: var(--text-sub); }
+.mama-msg { font-size: 12px; color: var(--text-sub); margin-top: 3px; font-style: italic; }
+.store-enter-btn { width: 100%; margin-top: 10px; padding: 10px; border-radius: 10px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: 0.05em; transition: opacity 0.15s; }
+.rec-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: #1a1010; font-size: 10px; font-weight: 500; padding: 3px 10px; border-radius: 10px; z-index: 2; }
+
+/* ========== CHAT SCREEN ========== */
+#screen-chat { display: none; flex-direction: column; flex: 1; }
+.chat-topbar { background: var(--dark); border-bottom: 0.5px solid var(--border); padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.back-btn { font-size: 22px; cursor: pointer; color: var(--text-sub); background: none; border: none; line-height: 1; padding: 2px 6px 2px 0; }
+.chat-topbar-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.chat-topbar-info { flex: 1; }
+.chat-topbar-name { font-size: 14px; font-weight: 500; }
+.chat-topbar-store { font-size: 10px; color: var(--text-sub); }
+.chat-affinity { font-size: 11px; color: var(--gold); background: #2a2040; padding: 3px 8px; border-radius: 10px; }
+.char-profile { background: var(--dark); border-bottom: 0.5px solid var(--border); padding: 10px 14px; display: flex; gap: 10px; align-items: flex-start; flex-shrink: 0; }
+.char-visual { width: 60px; height: 60px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; border: 0.5px solid var(--border); }
+.char-details { flex: 1; }
+.char-name-jp { font-size: 15px; font-weight: 500; margin-bottom: 1px; }
+.char-name-en { font-size: 10px; color: var(--gold); letter-spacing: 0.06em; margin-bottom: 5px; }
+.char-stats { display: flex; flex-direction: column; gap: 3px; }
+.stat-row { display: flex; align-items: center; gap: 6px; }
+.stat-label { font-size: 10px; color: var(--text-sub); width: 38px; flex-shrink: 0; }
+.stat-bar { flex: 1; height: 3px; background: var(--dark3); border-radius: 2px; }
+.stat-fill { height: 3px; border-radius: 2px; }
+.stamina-bar { padding: 5px 14px; background: var(--dark); display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-sub); border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+.stamina-track { flex: 1; height: 3px; background: var(--dark3); border-radius: 2px; }
+.stamina-fill { height: 3px; background: var(--gold); border-radius: 2px; transition: width 0.3s; }
+.stamina-count { color: var(--gold); font-weight: 500; }
+.messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+.msg { display: flex; gap: 7px; max-width: 85%; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg.ai { align-self: flex-start; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+.msg-bubble { padding: 9px 12px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+.msg.ai .msg-bubble { background: var(--dark3); border: 0.5px solid var(--border); border-top-left-radius: 4px; }
+.msg.user .msg-bubble { background: var(--purple); border-top-right-radius: 4px; color: #d8d0f0; }
+.msg-name { font-size: 10px; color: var(--text-sub); margin-bottom: 2px; padding-left: 2px; }
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 11px 13px; background: var(--dark3); border: 0.5px solid var(--border); border-radius: 16px; border-top-left-radius: 4px; }
+.typing-dot { width: 6px; height: 6px; background: var(--text-sub); border-radius: 50%; animation: typing 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%,60%,100% { opacity:0.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-4px); } }
+.quick-replies { padding: 6px 14px 2px; display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
+.quick-replies::-webkit-scrollbar { display: none; }
+.quick-btn { white-space: nowrap; font-size: 12px; padding: 6px 12px; border-radius: 16px; border: 0.5px solid var(--gold); color: var(--gold-light); background: transparent; cursor: pointer; flex-shrink: 0; }
+.input-area { padding: 8px 12px 16px; background: var(--dark); border-top: 0.5px solid var(--border); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.input-box { flex: 1; background: var(--dark3); border: 0.5px solid var(--border); border-radius: 20px; padding: 10px 14px; font-size: 14px; color: var(--text); outline: none; resize: none; max-height: 100px; font-family: inherit; line-height: 1.5; }
+.input-box::placeholder { color: var(--text-sub); }
+.input-box:focus { border-color: var(--purple); }
+.send-btn { width: 40px; height: 40px; background: var(--gold); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.send-btn:disabled { opacity: 0.4; }
+.send-btn svg { width: 18px; height: 18px; fill: #1a1010; }
+.welcome-card { background: #1a1428; border: 0.5px solid var(--gold); border-radius: 12px; padding: 14px; text-align: center; margin: 4px 0; }
+.welcome-card .store-tag { font-size: 10px; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 6px; }
+.welcome-card .welcome-text { font-size: 14px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+<!-- PLAN -->
+<div id="screen-plan">
+  <div class="plan-header">
+    <div class="plan-logo">✦ AI 仮想夜街 ✦</div>
+    <div class="plan-title">プランを選ぶ</div>
+    <div class="plan-sub">いつでも変更・解約できます</div>
+  </div>
+  <div class="plan-list">
+    <div class="plan-card" onclick="selectPlan('free')">
+      <div class="plan-body">
+        <div class="plan-name">無料プラン</div>
+        <div class="plan-price"><span>¥0</span> / 月</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>1日30分まで会話可能</li>
+          <li><span class="check">✓</span>全3店舗入店可能</li>
+          <li><span style="color:#555">✗</span>広告あり</li>
+          <li><span style="color:#555">✗</span>延長・VIP特典なし</li>
+        </ul>
+        <button class="plan-btn" style="background:var(--dark3);color:var(--text-sub);border:0.5px solid var(--border)">このプランで始める</button>
+      </div>
+    </div>
+    <div class="plan-card recommended" onclick="selectPlan('standard')">
+      <div class="plan-body">
+        <div class="plan-name">スタンダード</div>
+        <div class="plan-price"><span>¥2,980</span> / 月（税込）</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>1日2時間まで会話可能</li>
+          <li><span class="check">✓</span>広告なし</li>
+          <li><span class="check">✓</span>全3店舗入店可能</li>
+          <li><span class="check">✓</span>延長 1時間200円（税込）</li>
+        </ul>
+        <button class="plan-btn" style="background:#2a2040;color:var(--gold-light);border:0.5px solid var(--gold)">このプランで始める</button>
+      </div>
+    </div>
+    <div class="plan-card" onclick="selectPlan('vip')" style="background:linear-gradient(135deg,#1a1428,#120e20)">
+      <div class="plan-body">
+        <div class="plan-name" style="color:var(--gold-light)">👑 VIP</div>
+        <div class="plan-price"><span>¥9,800</span> / 月（税込）</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>会話時間 <strong style="color:var(--gold)">無制限</strong></li>
+          <li><span class="check">✓</span>広告なし</li>
+          <li><span class="check">✓</span>VIP席・深夜イベント・休日前イベント</li>
+          <li><span class="check">✓</span>限定衣装・限定会話シナリオ</li>
+        </ul>
+        <button class="plan-btn" style="background:var(--gold);color:#1a1010">VIPで始める</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STREET -->
+<div id="screen-street">
+  <div class="street-header">
+    <div class="street-logo">✦ AI 仮想夜街 ✦</div>
+    <div class="street-title">仮想銀座</div>
+    <div class="street-sub">今夜はどんな気分ですか？</div>
+  </div>
+  <div class="mood-section">
+    <div class="mood-label">今夜の気分</div>
+    <div class="mood-chips">
+      <button class="mood-chip" onclick="setMood(this,'癒されたい')">癒されたい</button>
+      <button class="mood-chip" onclick="setMood(this,'話を聞いてほしい')">話を聞いてほしい</button>
+      <button class="mood-chip" onclick="setMood(this,'笑いたい')">笑いたい</button>
+      <button class="mood-chip" onclick="setMood(this,'元気になりたい')">元気になりたい</button>
+      <button class="mood-chip" onclick="setMood(this,'ただ飲みたい')">ただ飲みたい</button>
+    </div>
+  </div>
+  <div class="stores-section" id="stores-section"></div>
+</div>
+
+<!-- CHAT -->
+<div id="screen-chat">
+  <div class="chat-topbar">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <div class="chat-topbar-avatar" id="ct-avatar"></div>
+    <div class="chat-topbar-info">
+      <div class="chat-topbar-name" id="ct-name"></div>
+      <div class="chat-topbar-store" id="ct-store"></div>
+    </div>
+    <div class="chat-affinity" id="ct-affinity"></div>
+  </div>
+  <div class="char-profile" id="char-profile"></div>
+  <div class="stamina-bar">
+    <span id="stamina-label">残り時間</span>
+    <div class="stamina-track"><div class="stamina-fill" id="stamina-fill" style="width:100%"></div></div>
+    <span class="stamina-count" id="stamina-count">--:--</span>
+  </div>
+  <div class="messages" id="messages"></div>
+  <div class="quick-replies" id="quick-replies"></div>
+  <div class="input-area">
+    <textarea class="input-box" id="input" placeholder="メッセージを入力..." rows="1" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="send-btn" onclick="send()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const stores = [
+  {
+    id: 'south',
+    name: 'クラブ南', nameEn: 'CLUB MINAMI',
+    desc: 'ジャズと琥珀色の灯り。静かに心を整えたい夜に。',
+    visual: '🥃', visualBg: 'linear-gradient(135deg,#1a0e28,#0e0a18)',
+    badges: [{ text: '癒し', color: '#9060c0', bg: '#2a1a40' }, { text: '落ち着き', color: '#7060a0', bg: '#1e1830' }],
+    moods: ['癒されたい', '話を聞いてほしい', 'ただ飲みたい'],
+    mama: { name: '南 詩織', role: 'ママ · 54歳', avatar: '🌙', avatarBg: '#1a1428', msg: 'いつでも待ってますよ…' },
+    char: {
+      name: '南 詩織', nameEn: 'Minami Shiori · 54歳',
+      avatar: '🌙', avatarBg: '#1a1428', statColor: '#9060c0',
+      stats: { 癒し度: 95, 包容力: 98, 聞き上手: 97 },
+      affinity: 68, badge: '銀座の母',
+      welcome: 'いらっしゃいませ…。\nよく来てくれましたね。\n今夜は、ゆっくりしていってください。',
+      quick: ['お疲れ様です', '少し話したいです', '最近しんどくて', '聞いてほしいことがある'],
+      system: `あなたは「南 詩織（みなみ しおり）」、54歳。銀座の高級クラブ「クラブ南」のママです。落ち着きがあり、包容力に溢れ、静かな癒しを提供します。話し方は穏やかで丁寧。語尾に「ね」「よ」「わ」を自然に使います。ユーザーの話をしっかり聞き、共感し、そっと背中を押す言葉をかけます。返答は3〜5文程度の自然な会話調で。`
+    }
+  },
+  {
+    id: 'eternity',
+    name: 'Lounge Eternity', nameEn: 'LOUNGE ETERNITY',
+    desc: '気軽に寄れて、前向きになれる。明るいエネルギーの空間。',
+    visual: '🌿', visualBg: 'linear-gradient(135deg,#0e1a14,#0a1410)',
+    badges: [{ text: '元気', color: '#50a070', bg: '#1a2a1e' }, { text: '会話', color: '#408060', bg: '#162018' }],
+    moods: ['元気になりたい', '話を聞いてほしい', 'ただ飲みたい'],
+    mama: { name: 'アイナ', role: 'ママ · 42歳', avatar: '🌿', avatarBg: '#1a2a1e', msg: '来てくれて嬉しい！' },
+    char: {
+      name: 'アイナ', nameEn: 'Aina · 42歳',
+      avatar: '🌿', avatarBg: '#1a2a1e', statColor: '#50a070',
+      stats: { 元気度: 92, 会話力: 95, 明るさ: 98 },
+      affinity: 45, badge: 'ハッピーオーラ',
+      welcome: 'いらっしゃい！\n来てくれて嬉しい〜！\n今日はどんな一日だった？',
+      quick: ['こんばんは', '今日は疲れたな', '楽しい話がしたい', '愚痴聞いてほしい'],
+      system: `あなたは「アイナ」、42歳。銀座の「Lounge Eternity」のママです。明るく元気で、気軽に話せる親しみやすさが魅力。話し方はフレンドリーで少しカジュアル。笑いも交えながら、ユーザーを元気づけます。返答は3〜5文程度の自然な会話調で。`
+    }
+  },
+  {
+    id: 'mrsboy',
+    name: 'Mrs.Boy', nameEn: 'MRS. BOY',
+    desc: '笑いと本音で感情を軽くする。愛ある毒舌ママが待ってる。',
+    visual: '💄', visualBg: 'linear-gradient(135deg,#1a0a1a,#200a20)',
+    badges: [{ text: '笑い', color: '#c060a0', bg: '#2a1028' }, { text: '発散', color: '#a04080', bg: '#201020' }],
+    moods: ['笑いたい', '元気になりたい', 'ただ飲みたい'],
+    mama: { name: 'かおる', role: 'オカマママ · 48歳', avatar: '💄', avatarBg: '#2a1028', msg: 'あら、いらっしゃ〜い♡' },
+    char: {
+      name: 'かおる', nameEn: 'Kaoru · 48歳',
+      avatar: '💄', avatarBg: '#2a1028', statColor: '#c060a0',
+      stats: { 笑わせ度: 98, 毒舌力: 90, 愛情深さ: 95 },
+      affinity: 33, badge: '笑いの女王',
+      welcome: 'あら、いらっしゃ〜い♡\nまあ、そんな暗い顔して！\n今夜はかおるがぜ〜んぶ笑い飛ばしてあげるわよ！',
+      quick: ['こんばんは〜', '愚痴聞いて！', '笑わせて！', '落ち込んでるの'],
+      system: `あなたは「かおる」、48歳のオカマママ。銀座の「Mrs.Boy」を切り盛りしています。明るく毒舌で、愛情たっぷり。話し方は関西弁混じりの独特なテンポ。「〜やわ」「〜ちゃう？」「あら」を自然に使います。愛のある毒舌でユーザーをイジりながら、根っこは温かく支えてあげてください。返答は3〜5文程度の自然な会話調で。`
+    }
+  }
+];
+
+const planConfig = {
+  free:     { label: '無料', dailyMin: 30,   unlimited: false },
+  standard: { label: 'スタンダード', dailyMin: 120, unlimited: false },
+  vip:      { label: 'VIP 👑', dailyMin: 9999, unlimited: true }
+};
+
+let userPlan = null;
+let remainingSeconds = 0;
+let timerInterval = null;
+let currentStore = null;
+let isLoading = false;
+let chatHistory = {};
+stores.forEach(s => chatHistory[s.id] = []);
+
+function selectPlan(plan) {
+  userPlan = plan;
+  remainingSeconds = planConfig[plan].dailyMin * 60;
+  document.getElementById('screen-plan').style.display = 'none';
+  document.getElementById('screen-street').style.display = 'flex';
+  renderStores(null);
+}
+
+function formatTime(sec) {
+  if (sec >= 9999 * 60) return '無制限';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  if (planConfig[userPlan].unlimited) return;
+  timerInterval = setInterval(() => {
+    if (remainingSeconds > 0) { remainingSeconds--; updateStamina(); }
+    else { clearInterval(timerInterval); showTimeUp(); }
+  }, 1000);
+}
+
+function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+
+function showTimeUp() {
+  if (userPlan === 'standard') {
+    if (confirm('本日の会話時間を使い切りました。\n1時間延長しますか？（200円・税込）')) {
+      remainingSeconds = 3600; startTimer();
+    }
+  } else {
+    alert('本日の会話時間を使い切りました。\nスタンダードまたはVIPプランへのアップグレードをご検討ください。');
+  }
+}
+
+function setMood(el, mood) {
+  document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderStores(mood);
+}
+
+function renderStores(mood) {
+  const sec = document.getElementById('stores-section');
+  sec.innerHTML = stores.map(s => {
+    const isRec = mood && s.moods.includes(mood);
+    return `
+    <div class="store-card${isRec?' recommended':''}" onclick="enterStore('${s.id}')">
+      ${isRec ? '<div class="rec-badge">おすすめ</div>' : ''}
+      <div class="store-visual" style="background:${s.visualBg}">
+        <div class="store-visual-emoji">${s.visual}</div>
+        <div class="store-visual-overlay"></div>
+      </div>
+      <div class="store-body">
+        <div class="store-top">
+          <div><div class="store-name">${s.name}</div><div class="store-name-en">${s.nameEn}</div></div>
+          <div class="store-badges">${s.badges.map(b=>`<span class="store-badge" style="color:${b.color};border-color:${b.color};background:${b.bg}">${b.text}</span>`).join('')}</div>
+        </div>
+        <div class="store-desc">${s.desc}</div>
+        <div class="store-mama">
+          <div class="mama-avatar" style="background:${s.mama.avatarBg}">${s.mama.avatar}</div>
+          <div><div class="mama-name">${s.mama.name}</div><div class="mama-role">${s.mama.role}</div><div class="mama-msg">「${s.mama.msg}」</div></div>
+        </div>
+        <button class="store-enter-btn" style="background:${isRec?'#2a2040':'var(--dark3)'};color:${isRec?'var(--gold-light)':'var(--text-sub)'};border:0.5px solid ${isRec?'var(--gold)':'var(--border)'}">
+          ${isRec ? '✦ 入店する' : '入店する'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function enterStore(id) {
+  currentStore = stores.find(s => s.id === id);
+  document.getElementById('screen-street').style.display = 'none';
+  document.getElementById('screen-chat').style.display = 'flex';
+  renderChatHeader(); renderProfile(); renderMessages(); renderQuickReplies(); updateStamina(); startTimer();
+}
+
+function goBack() {
+  stopTimer();
+  document.getElementById('screen-chat').style.display = 'none';
+  document.getElementById('screen-street').style.display = 'flex';
+  currentStore = null;
+}
+
+function renderChatHeader() {
+  const c = currentStore.char;
+  const av = document.getElementById('ct-avatar');
+  av.textContent = c.avatar; av.style.background = c.avatarBg;
+  document.getElementById('ct-name').textContent = c.name;
+  document.getElementById('ct-store').textContent = currentStore.name;
+  document.getElementById('ct-affinity').textContent = '好感度 ' + c.affinity + '%';
+}
+
+function renderProfile() {
+  const c = currentStore.char;
+  const statsHtml = Object.entries(c.stats).map(([k,v]) =>
+    `<div class="stat-row"><span class="stat-label">${k}</span><div class="stat-bar"><div class="stat-fill" style="width:${v}%;background:${c.statColor}"></div></div></div>`
+  ).join('');
+  document.getElementById('char-profile').innerHTML = `
+    <div class="char-visual" style="background:${c.avatarBg}">${c.avatar}</div>
+    <div class="char-details">
+      <div class="char-name-jp">${c.name}</div>
+      <div class="char-name-en">${c.nameEn}</div>
+      <div class="char-stats">${statsHtml}</div>
+    </div>`;
+}
+
+function renderMessages() {
+  const el = document.getElementById('messages');
+  const c = currentStore.char;
+  const msgs = chatHistory[currentStore.id];
+  if (msgs.length === 0) {
+    el.innerHTML = `<div class="welcome-card"><div class="store-tag">${currentStore.name}</div><div class="welcome-text">${c.welcome.replace(/\n/g,'<br>')}</div></div>`;
+  } else {
+    el.innerHTML = msgs.map(m => m.role === 'user'
+      ? `<div class="msg user"><div class="msg-avatar" style="background:#2a2060">👤</div><div><div class="msg-bubble">${m.content}</div></div></div>`
+      : `<div class="msg ai"><div class="msg-avatar" style="background:${c.avatarBg}">${c.avatar}</div><div><div class="msg-name">${c.name}</div><div class="msg-bubble">${m.content.replace(/\n/g,'<br>')}</div></div></div>`
+    ).join('');
+  }
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderQuickReplies() {
+  if (chatHistory[currentStore.id].length > 0) { document.getElementById('quick-replies').innerHTML = ''; return; }
+  document.getElementById('quick-replies').innerHTML = currentStore.char.quick.map(q =>
+    `<button class="quick-btn" onclick="sendQuick('${q}')">${q}</button>`
+  ).join('');
+}
+
+function updateStamina() {
+  const unlimited = planConfig[userPlan]?.unlimited;
+  const pct = unlimited ? 100 : (remainingSeconds / (planConfig[userPlan].dailyMin * 60)) * 100;
+  document.getElementById('stamina-fill').style.width = Math.max(0, pct) + '%';
+  document.getElementById('stamina-count').textContent = unlimited ? '無制限' : formatTime(remainingSeconds);
+  document.getElementById('stamina-label').textContent = `残り時間 [${planConfig[userPlan]?.label || ''}]`;
+}
+
+function showTyping() {
+  const el = document.getElementById('messages');
+  const c = currentStore.char;
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'typing';
+  div.innerHTML = `<div class="msg-avatar" style="background:${c.avatarBg}">${c.avatar}</div><div><div class="msg-name">${c.name}</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  el.appendChild(div); el.scrollTop = el.scrollHeight;
+}
+
+function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+function sendQuick(text) { document.getElementById('input').value = text; send(); }
+
+async function send() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  if (remainingSeconds <= 0 && !planConfig[userPlan].unlimited) { showTimeUp(); return; }
+
+  isLoading = true;
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('quick-replies').innerHTML = '';
+
+  chatHistory[currentStore.id].push({ role: 'user', content: text });
+  renderMessages(); showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        characterId: currentStore.id,
+        plan: userPlan,
+        messages: chatHistory[currentStore.id].map(m => ({ role: m.role, content: m.content })),
+        systemPrompt: currentStore.char.system
+      })
+    });
+    const data = await res.json();
+    const reply = data.reply || 'ごめんなさい、少し聞こえなかったわ…もう一度話しかけてくれる？';
+    removeTyping();
+    chatHistory[currentStore.id].push({ role: 'assistant', content: reply });
+    currentStore.char.affinity = Math.min(100, currentStore.char.affinity + 2);
+    document.getElementById('ct-affinity').textContent = '好感度 ' + currentStore.char.affinity + '%';
+  } catch(e) {
+    removeTyping();
+    chatHistory[currentStore.id].push({ role: 'assistant', content: 'ごめんなさい、少し聞こえなかったわ…もう一度話しかけてくれる？' });
+  }
+  renderMessages();
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+
+// Init
+document.getElementById('screen-plan').style.display = 'flex';
+</script>
+</body>
+</html>
